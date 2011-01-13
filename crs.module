@@ -1,0 +1,39 @@
+<?php
+
+function crs_perm() {
+  return array('crs change currency');
+}
+
+function crs_menu() {
+  $items['admin/store/currency'] = array(
+    'type' => MENU_NORMAL_ITEM,
+    'title' => 'Exchange rate',
+    'access arguments' => array('crs change currency'),
+    //'page callback' => 'sdgdsfgsgd',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('crs_exchangerate_form'),
+  );
+  
+  return $items;
+}
+
+function sdgdsfgsgd() {
+  return '<h2>sfsfsf</h2>';
+}
+
+function _crs_list_currency() {
+  return array('EUR', 'USD');
+}
+
+function crs_exchangerate_form() {
+//  foreach(_crs_list_currency() as $currency) {
+//    
+//  }
+  
+  $form['submit'] = array(
+    'type' => 'submit',
+    'title' => t('Update'),
+  );
+  
+  return $form;
+}
