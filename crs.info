@@ -1,2 +1,4 @@
-name = Custom currencis
+name = Custom currency for Ubercart
 core = 6.x
+dependencies[] = uc_product
+package = Aaa

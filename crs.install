@@ -1,7 +1,72 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-?>
+function crs_schema_alter(&$schema) {
+  $new_fields = array(
+    'crs_list_price' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_cost' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_sell_price' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_list_price_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'crs_cost_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'crs_sell_price_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+  );
+
+  foreach ($new_fields as $fname => $fdescr) {
+    $schema['uc_products']['fields'][$fname] = $fdescr;
+  }
+}
+
+function crs_install() {
+  $ret = array();
+  $schema['uc_products'] = array();
+  crs_schema_alter($schema);
+  foreach ($schema['uc_products']['fields'] as $name => $spec) {
+    db_add_field($ret, 'uc_products', $name, $spec);
+  }  
+}
+
+function crs_uninstall() {
+  $ret = array();
+  $schema['uc_products'] = array();
+  crs_schema_alter($schema);
+  foreach ($schema['uc_products']['fields'] as $name => $spec) {
+    db_drop_field($ret, 'uc_products', $name);
+  }
+  
+  db_query("DELETE FROM {variable} WHERE name LIKE 'crs%'");
+}

@@ -1,5 +1,12 @@
 <?php
 
+function _crs_list_currency() {
+  return array('EUR', 'USD');
+}
+
+/*
+ * Drupal hooks
+ */
 function crs_perm() {
   return array('crs change currency');
 }
@@ -9,7 +16,6 @@ function crs_menu() {
     'type' => MENU_NORMAL_ITEM,
     'title' => 'Exchange rate',
     'access arguments' => array('crs change currency'),
-    //'page callback' => 'sdgdsfgsgd',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('crs_exchangerate_form'),
   );
@@ -17,23 +23,103 @@ function crs_menu() {
   return $items;
 }
 
-function sdgdsfgsgd() {
-  return '<h2>sfsfsf</h2>';
+function crs_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if (in_array($node->type, uc_product_product_types())) {
+    switch ($op) {
+      case 'load':
+        $currency = variable_get('crs_currency_rates', array());
+        $carr = db_fetch_array(db_query('SELECT crs_list_price, crs_cost, crs_sell_price, 
+          crs_list_price_cur, crs_cost_cur, crs_sell_price_cur FROM {uc_products} WHERE vid = %d', $node->vid));
+
+        if ($carr['crs_list_price'] && $carr['crs_list_price_cur']) {
+          $node->list_price = (float)$carr['crs_list_price'] * (float)$currency[$carr['crs_list_price_cur']];
+        }
+
+        if ($carr['crs_cost'] && $carr['crs_cost_cur']) {
+          $node->cost = (float)$carr['crs_cost'] * (float)$currency[$carr['crs_cost_cur']];
+        }
+
+        if ($carr['crs_sell_price'] && $carr['crs_sell_price_cur']) {
+          $node->sell_price = (float)$carr['crs_sell_price'] * (float)$currency[$carr['crs_sell_price_cur']];
+        }
+
+        return $carray;
+        break;
+    }
+  }
 }
 
-function _crs_list_currency() {
-  return array('EUR', 'USD');
+//function crs_form_alter(&$form, &$form_state, $form_id) {
+//  
+//}
+function crs_node_form_alter(&$form, &$form_state, $form_id) {
+  drupal_set_message('ololo');
 }
 
+/*
+ * Settings
+ */
 function crs_exchangerate_form() {
-//  foreach(_crs_list_currency() as $currency) {
-//    
-//  }
+  $currency_values = variable_get('crs_currency_rates', array());
+  foreach(_crs_list_currency() as $currency) {
+    $form[$currency] = array(
+      '#type' => 'textfield',
+      '#title' => '1 ' . $currency,
+      '#default_value' => empty($currency_values[$currency]) ? 0 : $currency_values[$currency],
+      '#size' => 5,
+      '#description' => variable_get('uc_currency_code', 'USD'),
+    );
+  }
   
   $form['submit'] = array(
-    'type' => 'submit',
-    'title' => t('Update'),
+    '#type' => 'submit',
+    '#value' => t('Update'),
   );
   
   return $form;
 }
+
+function crs_exchangerate_form_submit($form, &$form_state = NULL) {
+  $rates = array();
+  foreach(_crs_list_currency() as $currency) {
+    $raw_value = $form_state['values'][$currency];
+    $raw_value = str_replace(variable_get('uc_currency_dec', ''), '.', $raw_value);
+    $rates[$currency] = (float)$raw_value;
+  }
+  variable_set('crs_currency_rates', $rates);
+}
+
+/*
+ * Ubercart hooks
+ */
+
+//function crs_uc_price_handler() {
+//  return array(
+//    'alter' => array(
+//      'title' => t('Custom currency alterer'),
+//      'description' => t('Handles my price alteration needs.'),
+//      'callback' => 'crs_price_handler_alter',
+//    ),
+//    'options' => array(
+//      'sign' => variable_get('uc_currency_sign', '*'),
+//      'sign_after' => TRUE,
+//      'prec' => 4,
+//      'dec' => ',',
+//      'thou' => '.',
+//      'label' => FALSE,
+//      'my_option_that_my_formatter_recognizes' => 1337,
+//    )
+//  );
+//}
+//
+//function crs_price_handler_alter(&$price, &$context, &$options) {
+//  $currency = variable_get('crs_currency_rates', array());
+//  if (in_array($context['field'], array('sell_price', 'list_price', 'cost'))) {
+//    $r_price    = $context['subject']['node']->{'crs_' . $context['field']};
+//    $r_currency = $context['subject']['node']->{'crs_' . $context['field'] . '_cur'};
+//    
+//    if ($r_price && $r_currency && isset($currency[$r_currency])) {
+//      $price['price'] = (float)$r_price * (float)$currency[$r_currency];
+//    }
+//  }
+//}
