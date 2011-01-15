@@ -1,5 +1,14 @@
 <?php
+// $Id$
 
+/**
+ * @file
+ * Define schema for currencies
+ */
+
+/**
+ * hook_schema_alter()
+ */
 function crs_schema_alter(&$schema) {
   $new_fields = array(
     'crs_list_price' => array(
@@ -51,15 +60,24 @@ function crs_schema_alter(&$schema) {
   }
 }
 
+/**
+ * hook_install()
+ */
 function crs_install() {
   $ret = array();
   $schema['uc_products'] = array();
   crs_schema_alter($schema);
   foreach ($schema['uc_products']['fields'] as $name => $spec) {
     db_add_field($ret, 'uc_products', $name, $spec);
-  }  
+  }
+  
+  require_once 'crs.module';
+  variable_set('crs_currency_rates', array_fill_keys(crs_currencies() , 1.0));
 }
 
+/**
+ * hook_ininstall()
+ */
 function crs_uninstall() {
   $ret = array();
   $schema['uc_products'] = array();
@@ -67,6 +85,6 @@ function crs_uninstall() {
   foreach ($schema['uc_products']['fields'] as $name => $spec) {
     db_drop_field($ret, 'uc_products', $name);
   }
-  
+
   db_query("DELETE FROM {variable} WHERE name LIKE 'crs%'");
 }

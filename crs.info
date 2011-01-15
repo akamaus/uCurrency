@@ -1,4 +1,6 @@
-name = Custom currency for Ubercart
+; $Id$
+
+name = Currencies for Ubercart
 core = 6.x
 dependencies[] = uc_product
 package = Aaa
