@@ -1,6 +1,6 @@
 ; $Id$
 
-name = Currencies for Ubercart
+version = 6.x-0.1
+name = Currency for Ubercart
 core = 6.x
 dependencies[] = uc_product
-package = Aaa

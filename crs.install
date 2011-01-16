@@ -70,7 +70,7 @@ function crs_install() {
   foreach ($schema['uc_products']['fields'] as $name => $spec) {
     db_add_field($ret, 'uc_products', $name, $spec);
   }
-  
+
   require_once 'crs.module';
   variable_set('crs_currency_rates', array_fill_keys(crs_currencies() , 1.0));
 }

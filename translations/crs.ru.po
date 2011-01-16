@@ -1,0 +1,77 @@
+# $Id$
+#
+# Russian translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  crs.module: n/a
+#  crs.install: n/a
+#  crs.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2011-01-16 17:59+0300\n"
+"PO-Revision-Date: 2011-01-16 17:59+0300\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Russian <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+
+#: crs.module:92
+msgid "Price must be in a valid number format. No commas and only one decimal point."
+msgstr ""
+"Цена должна быть числом больше нуля. "
+"Для разделения десятичных знаков "
+"используется точка."
+
+#: crs.module:136
+msgid "List price"
+msgstr "Цена по прейскуранту"
+
+#: crs.module:142
+msgid "Cost"
+msgstr "Стоимость"
+
+#: crs.module:148
+msgid "Sell price"
+msgstr "Цена продажи"
+
+#: crs.module:156;163;170
+msgid "Crs"
+msgstr "Crs"
+
+#: crs.module:213
+msgid "Show native Ubercart's price fields at node/xx/edit"
+msgstr "Оторбражать родные поля с ценами Ubercart в node/xx/edit"
+
+#: crs.module:219
+msgid "Update"
+msgstr "Обновить"
+
+#: crs.module:247;251
+msgid "crs"
+msgstr "crs"
+
+#: crs.module:247;251
+msgid "Currency '%currency' not found."
+msgstr "Котировка валюты '%currency' не найдена."
+
+#: crs.module:26
+msgid "crs change currency"
+msgstr "crs менять котировки"
+
+#: crs.module:35
+msgid "Exchange rates"
+msgstr "Обменные курсы"
+
+#: crs.install:15;23;31;39;45;51
+msgid "TODO: please describe this field!"
+msgstr ""
+
+#: crs.info:0
+msgid "Currency for Ubercart"
+msgstr "Курсы валют для Ubercart"
+
