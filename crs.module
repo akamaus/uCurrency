@@ -64,17 +64,56 @@ function crs_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
           $node->_sell_price = $node->sell_price;
           $node->sell_price = crs_exch($q->crs_sell_price, $q->crs_sell_price_cur, $native);
         }
-
-        return;
+        break;
+        
+      case 'update':
+        db_query("UPDATE {uc_products} SET
+          crs_list_price = %d,
+          crs_list_price_cur = '%s',
+          crs_cost = %d, 
+          crs_cost_cur = '%s',
+          crs_sell_price = %d, 
+          crs_sell_price_cur = '%s'
+          WHERE vid = %d", 
+          $node->crs_list_price, $node->crs_list_price_cur, 
+          $node->crs_cost, $node->crs_cost_cur,
+          $node->crs_sell_price, $node->crs_sell_price_cur,
+          $node->vid);
+        break;
+      
+      case 'validate':
+        $pattern = '/^\d*(\.\d*)?$/';
+        $price_error = t('Price must be in a valid number format. No commas and only one decimal point.');
+        if (!empty($node->crs_list_price) && !is_numeric($node->crs_list_price) && !preg_match($pattern, $node->crs_list_price)) {
+          form_set_error('crs_list_price', $price_error);
+        }
+        if (!empty($node->crs_cost) && !is_numeric($node->crs_cost) && !preg_match($pattern, $node->crs_cost)) {
+          form_set_error('crs_cost', $price_error);
+        }
+        if (!is_numeric($node->crs_sell_price) && !preg_match($pattern, $node->crs_sell_price)) {
+          form_set_error('crs_sell_price', $price_error);
+        }
         break;
     }
   }
 }
 
 /**
+ * hook_theme()
+ */
+function crs_theme() {
+  return array(
+    'crs_uc_product_form_prices' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
  * hook_form_FORM_ID_alter() for product_node_form
  */
 function crs_form_product_node_form_alter(&$form, &$form_state) {
+  drupal_add_css(drupal_get_path('module', 'crs') . '/crs.css');
   dsm(array($form, &$form_state));
   
   if (isset($form['#node']->_list_price)) {
@@ -87,12 +126,70 @@ function crs_form_product_node_form_alter(&$form, &$form_state) {
     $form['base']['prices']['sell_price']['#default_value'] = $form['#node']->_sell_price;
   }
   
-  if (!variable_get('crs_show_native', FALSE)) {
-    $form['base']['prices']['#theme'] = '';
-    $form['base']['prices']['list_price']['#attributes']['style'] = 'display: none;';
-    $form['base']['prices']['cost']['#attributes']['style'] = 'display: none;';
-    $form['base']['prices']['sell_price']['#attributes']['style'] = 'display: none;';
-  }
+  $form['base']['prices']['#theme'] = 'crs_uc_product_form_prices';
+  $form['base']['prices']['crs_list_price'] = array(
+    '#type' => 'textfield',
+    '#size' => 16,
+    '#default_value' => $form['#node']->crs_list_price,
+    '#title' => t('List price'),
+    
+  );
+  $form['base']['prices']['crs_cost'] = array(
+    '#type' => 'textfield',
+    '#size' => 16,
+    '#default_value' => $form['#node']->crs_cost,
+    '#title' => t('Cost'),
+  );
+  $form['base']['prices']['crs_sell_price'] = array(
+    '#type' => 'textfield',
+    '#size' => 16,
+    '#default_value' => $form['#node']->crs_sell_price,
+    '#title' => t('Sell price'),
+    '#required' => TRUE,
+  );
+  
+  $currencies = array_merge(array(variable_get('uc_currency_code', 'USD')), crs_currencies());
+  $currencies = array_combine($currencies, $currencies);
+  $form['base']['prices']['crs_list_price_cur'] = array(
+    '#type' => 'select',
+    '#title' => t('Crs'),
+    '#options' => $currencies,
+    '#default_value' => empty($form['#node']->crs_list_price_cur) ? 
+      variable_get('uc_currency_code', 'USD') : $form['#node']->crs_list_price_cur,
+  );
+  $form['base']['prices']['crs_cost_cur'] = array(
+    '#type' => 'select',
+    '#title' => t('Crs'),
+    '#options' => $currencies,
+    '#default_value' => empty($form['#node']->crs_cost_cur) ? 
+      variable_get('uc_currency_code', 'USD') : $form['#node']->crs_cost_cur,
+  );
+  $form['base']['prices']['crs_sell_price_cur'] = array(
+    '#type' => 'select',
+    '#title' => t('Crs'),
+    '#options' => $currencies,
+    '#default_value' => empty($form['#node']->crs_sell_price_cur) ? 
+      variable_get('uc_currency_code', 'USD') : $form['#node']->crs_sell_price_cur,
+  );
+  
+}
+
+/**
+ * Theme function for prices in product_price_form
+ */
+function theme_crs_uc_product_form_prices($form) {
+  $isShowNative = !variable_get('crs_show_native', FALSE) ? 'style="display: none"' : '';
+  $output = "<table $isShowNative><tr><td>\n". drupal_render($form['list_price'])
+    .'</td><td>'. drupal_render($form['cost'])
+    .'</td><td>'. drupal_render($form['sell_price'])
+    ."</td></tr></table>\n";
+  $output .= "<table id=\"crs-fields\">
+    <tr><td>\n". drupal_render($form['crs_list_price']) . drupal_render($form['crs_list_price_cur'])
+    .'</td><td>'. drupal_render($form['crs_cost']) . drupal_render($form['crs_cost_cur'])
+    .'</td><td>'. drupal_render($form['crs_sell_price']) . drupal_render($form['crs_sell_price_cur'])
+    ."</td></tr></table>\n";
+  
+  return $output . drupal_render($form);
 }
 
 /**
@@ -123,7 +220,6 @@ function crs_exchangerate_form() {
 
   return $form;
 }
-
 
 function crs_exchangerate_form_submit($form, &$form_state = NULL) {
   $rates = array();
