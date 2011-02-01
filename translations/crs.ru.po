@@ -45,7 +45,7 @@ msgstr "Crs"
 
 #: crs.module:213
 msgid "Show native Ubercart's price fields at node/xx/edit"
-msgstr "Оторбражать родные поля с ценами Ubercart в node/xx/edit"
+msgstr "Отображать родные поля с ценами Ubercart в node/xx/edit"
 
 #: crs.module:219
 msgid "Update"
