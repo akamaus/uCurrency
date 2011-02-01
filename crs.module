@@ -57,12 +57,12 @@ function crs_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         $native = variable_get('uc_currency_code', 'USD');
 
         $node->_list_price = $node->list_price;
-        $node->_cost       = $node->_cost;
+        $node->_cost       = $node->cost;
         $node->_sell_price = $node->sell_price;
 
-        $node->list_price = crs_exch($q->crs_list_price, $q->crs_list_price_cur, $native);
-        $node->cost       = crs_exch($q->crs_cost, $q->crs_cost_cur, $native);
-        $node->sell_price = crs_exch($q->crs_sell_price, $q->crs_sell_price_cur, $native);
+        $node->list_price = crs_exch($q->crs_list_price, $q->crs_list_price_cur, $native, 'crs_list_price');
+        $node->cost       = crs_exch($q->crs_cost,       $q->crs_cost_cur,       $native, 'crs_cost');
+        $node->sell_price = crs_exch($q->crs_sell_price, $q->crs_sell_price_cur, $native, 'crs_sell_price');
 
         $node->crs_list_price     = $q->crs_list_price;
         $node->crs_list_price_cur = $q->crs_list_price_cur;
@@ -234,9 +234,10 @@ function crs_exchangerate_form_submit($form, &$form_state = NULL) {
   variable_set('crs_show_native', $form_state['values']['show_native']);
 }
 
-function crs_exch($value, $src_currency, $dst_currency) {
+function crs_exch($value, $src_currency, $dst_currency, $title = NULL) {
   $currencies = variable_get('crs_currency_rates', array());
   $native_currency = variable_get('uc_currency_code', 'USD');
+
   $currencies[$native_currency] = 1.0;
 
   if ($dst_currency == $src_currency) {
@@ -244,15 +245,14 @@ function crs_exch($value, $src_currency, $dst_currency) {
   }
 
   if (!in_array($src_currency, array_keys($currencies))) {
-    watchdog('crs', 'Currency \'%currency\' not found.', array('%currency' => $src_currency), WATCHDOG_ERROR);
+    watchdog('crs', "[$title] Currency '%currency' not found.", array('%currency' => $src_currency), WATCHDOG_ERROR);
     return 0;
   }
   if (!in_array($dst_currency, array_keys($currencies))) {
-    watchdog('crs', 'Currency \'%currency\' not found.', array('%currency' => $dst_currency), WATCHDOG_ERROR);
+    watchdog('crs', "[$title] Currency '%currency' not found.", array('%currency' => $dst_currency), WATCHDOG_ERROR);
     return 0;
   }
 
   $new_price = (float)($value) * (float)($currencies[$src_currency]) / (float)($currencies[$dst_currency]);
-
-  return number_format($new_price, 2);
+  return floor($new_price * 100) / 100;
 }
