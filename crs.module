@@ -252,7 +252,7 @@ function crs_exch($value, $src_currency, $dst_currency) {
     return 0;
   }
 
-  $new_price = (float)$value * (float)$currencies[$src_currency] / (float)$currencies[$dst_currency];
+  $new_price = (float)($value) * (float)($currencies[$src_currency]) / (float)($currencies[$dst_currency]);
 
   return number_format($new_price, 2);
 }
