@@ -12,6 +12,7 @@
 function crs_init() {
   drupal_add_css(drupal_get_path('module', 'crs') . '/crs.css');
 }
+
 /**
  * List of supported currencies
  */
@@ -112,6 +113,9 @@ function crs_theme() {
     'crs_uc_product_form_prices' => array(
       'arguments' => array('form' => NULL),
     ),
+    'crs_exchangerate_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
   );
 }
 
@@ -197,14 +201,20 @@ function theme_crs_uc_product_form_prices($form) {
  * Exchange rates settings form
  */
 function crs_exchangerate_form() {
+  $form['#theme'] = 'crs_exchangerate_form';
+
   $currency_values = variable_get('crs_currency_rates', array());
   foreach (crs_currencies() as $currency) {
     $form[$currency] = array(
       '#type' => 'textfield',
-      '#title' => '1 ' . $currency,
       '#default_value' => empty($currency_values[$currency]) ? 1 : $currency_values[$currency],
       '#size' => 5,
-      '#description' => variable_get('uc_currency_code', 'USD'),
+    );
+
+    $form[$currency . '_delta'] = array(
+      '#type' => 'textfield',
+      '#default_value' => empty($currency_values[$currency . '_delta']) ? 0 : $currency_values[$currency . '_delta'],
+      '#size' => 5,
     );
   }
 
@@ -227,18 +237,42 @@ function crs_exchangerate_form_submit($form, &$form_state = NULL) {
   foreach (crs_currencies() as $currency) {
     $raw_value = $form_state['values'][$currency];
     $raw_value = str_replace(variable_get('uc_currency_dec', ''), '.', $raw_value);
-    $raw_value = (float)$raw_value == 0 ? 1 : (float)$raw_value;
-    $rates[$currency] = $raw_value;
+    $rates[$currency] = (float)$raw_value == 0 ? 1 : (float)$raw_value;
+    $rates[$currency . '_delta'] = (float)$form_state['values'][$currency . '_delta'];
   }
   variable_set('crs_currency_rates', $rates);
   variable_set('crs_show_native', $form_state['values']['show_native']);
 }
 
+function theme_crs_exchangerate_form($form) {
+  $header = array(
+    '',
+    t('Value')
+    ,'','',
+    t('Delta'),
+    ''
+  );
+  $rows = array();
+  foreach (crs_currencies() as $currency) {
+    $rows[] = array(
+      array('data' => '1 ' . $currency . ' = '),
+      array('data' => drupal_render($form[$currency])),
+      array('data' => variable_get('uc_currency_code', 'USD')),
+      array('data' => '+'),
+      array('data' => drupal_render($form[$currency . '_delta'])),
+      array('data' => '%'),
+    );
+  }
+
+  $output = theme('table', $header, $rows, array('class' => 'crs-exchangerate-table'));
+  return $output . drupal_render($form);
+}
+
 function crs_exch($value, $src_currency, $dst_currency, $title = NULL) {
   $currencies = variable_get('crs_currency_rates', array());
   $native_currency = variable_get('uc_currency_code', 'USD');
-
   $currencies[$native_currency] = 1.0;
+  $currencies[$native_currency . '_delta'] = 0;
 
   if ($dst_currency == $src_currency) {
     return $value;
@@ -253,6 +287,13 @@ function crs_exch($value, $src_currency, $dst_currency, $title = NULL) {
     return 0;
   }
 
+  // convert
   $new_price = (float)($value) * (float)($currencies[$src_currency]) / (float)($currencies[$dst_currency]);
+  
+  // apply delta
+  if ((float)$currencies[$src_currency . '_delta']) {
+    $new_price = $new_price * (1.0 + (float)$currencies[$src_currency . '_delta'] / 100);
+  }
+
   return floor($new_price * 100) / 100;
 }

@@ -1,2 +1,4 @@
 table#crs-fields td { overflow: hidden; }
 table#crs-fields div.form-item { float: left; }
+
+table.crs-exchangerate-table td { padding-left: 5px; padding-right: 10px; }
