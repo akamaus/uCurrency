@@ -121,9 +121,9 @@ function crs_theme() {
 }
 
 /**
- * hook_form_FORM_ID_alter() for product_node_form
+ * process any products edit form
  */
-function crs_form_product_node_form_alter(&$form, &$form_state) {
+function _crs_any_product_form_alter(&$form, &$form_state) {
   $node = $form['#node'];
 
   $form['base']['prices']['list_price']['#default_value'] =
@@ -178,6 +178,18 @@ function crs_form_product_node_form_alter(&$form, &$form_state) {
       variable_get('uc_currency_code', 'USD') : $node->crs_sell_price_cur,
   );
 
+}
+
+/**
+ * hook_form_alter()
+ */
+function crs_form_alter(&$form, &$form_state, $form_id) {
+  $types = uc_product_types();
+  if (!empty($form['#node'])) {
+    if (in_array($form['#node']->type, $types)) {
+      _crs_any_product_form_alter($form, $form_state);
+    }
+  }
 }
 
 /**
