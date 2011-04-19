@@ -1,6 +1,21 @@
 ; $Id$
 
-version = 6.x-0.2.2
-name = Currency for Ubercart
+version = 6.x-0.3
+name = uCurrency
 core = 6.x
+package = Ubercart - extra
 dependencies[] = uc_product
+dependencies[] = uc_attribute
+
+;CREATE TABLE IF NOT EXISTS `uc_products` (
+;  `vid` int(10) unsigned NOT NULL DEFAULT '0',
+;  `nid` int(10) unsigned NOT NULL DEFAULT '0',
+;  `crs_list_price` decimal(16,5) NOT NULL DEFAULT '0.00000',
+;  `crs_cost` decimal(16,5) NOT NULL DEFAULT '0.00000',
+;  `crs_sell_price` decimal(16,5) NOT NULL DEFAULT '0.00000',
+;  `crs_list_price_cur` varchar(16) NOT NULL,
+;  `crs_cost_cur` varchar(16) NOT NULL,
+;  `crs_sell_price_cur` varchar(16) NOT NULL,
+;  PRIMARY KEY (`vid`),
+;  KEY `nid` (`nid`)
+;) ENGINE=MyISAM DEFAULT CHARSET=utf8;

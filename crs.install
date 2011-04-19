@@ -10,7 +10,7 @@
  * hook_schema_alter()
  */
 function crs_schema_alter(&$schema) {
-  $new_fields = array(
+  $uc_products_fields = array(
     'crs_list_price' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'numeric',
@@ -54,9 +54,110 @@ function crs_schema_alter(&$schema) {
       'not null' => TRUE,
     ),
   );
-
-  foreach ($new_fields as $fname => $fdescr) {
+  foreach ($uc_products_fields as $fname => $fdescr) {
     $schema['uc_products']['fields'][$fname] = $fdescr;
+  }
+
+  $uc_attribute_options_fields = array(
+    'crs_cost' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_cost_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'crs_price' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_price_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+  );
+  foreach ($uc_attribute_options_fields as $fname => $fdescr) {
+    $schema['uc_attribute_options']['fields'][$fname] = $fdescr;
+  }
+
+  $uc_class_attribute_options_fields = array(
+    'crs_cost' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_cost_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'crs_price' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_price_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+  );
+  foreach ($uc_class_attribute_options_fields as $fname => $fdescr) {
+    $schema['uc_class_attribute_options']['fields'][$fname] = $fdescr;
+  }
+
+  $uc_product_options_fields = array(
+    'crs_cost' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_cost_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'crs_price' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'numeric',
+      'not null' => TRUE,
+      'default' => 0,
+      'precision' => '16',
+      'scale' => '5',
+    ),
+    'crs_price_cur' => array(
+      'description' => t('TODO: please describe this field!'),
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+  );
+  foreach ($uc_product_options_fields as $fname => $fdescr) {
+    $schema['uc_product_options']['fields'][$fname] = $fdescr;
   }
 }
 
@@ -69,6 +170,15 @@ function crs_install() {
   crs_schema_alter($schema);
   foreach ($schema['uc_products']['fields'] as $name => $spec) {
     db_add_field($ret, 'uc_products', $name, $spec);
+  }
+  foreach ($schema['uc_attribute_options']['fields'] as $name => $spec) {
+    db_add_field($ret, 'uc_attribute_options', $name, $spec);
+  }
+  foreach ($schema['uc_class_attribute_options']['fields'] as $name => $spec) {
+    db_add_field($ret, 'uc_class_attribute_options', $name, $spec);
+  }
+  foreach ($schema['uc_product_options']['fields'] as $name => $spec) {
+    db_add_field($ret, 'uc_product_options', $name, $spec);
   }
 
   require_once 'crs.module';
@@ -84,6 +194,15 @@ function crs_uninstall() {
   crs_schema_alter($schema);
   foreach ($schema['uc_products']['fields'] as $name => $spec) {
     db_drop_field($ret, 'uc_products', $name);
+  }
+  foreach ($schema['uc_attribute_options']['fields'] as $name => $spec) {
+    db_drop_field($ret, 'uc_attribute_options', $name);
+  }
+  foreach ($schema['uc_class_attribute_options']['fields'] as $name => $spec) {
+    db_drop_field($ret, 'uc_class_attribute_options', $name);
+  }
+  foreach ($schema['uc_product_options']['fields'] as $name => $spec) {
+    db_drop_field($ret, 'uc_product_options', $name);
   }
 
   db_query("DELETE FROM {variable} WHERE name LIKE 'crs%'");

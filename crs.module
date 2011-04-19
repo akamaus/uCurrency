@@ -31,14 +31,22 @@ function crs_perm() {
  * hook_menu()
  */
 function crs_menu() {
-  $items['admin/store/currency'] = array(
-    'type' => MENU_NORMAL_ITEM,
-    'title' => 'Exchange rates',
-    'access arguments' => array('crs change currency'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('crs_exchangerate_form'),
+  return array(
+    'admin/store/currency' => array(
+      'type' => MENU_NORMAL_ITEM,
+      'title' => 'Exchange rates',
+      'access arguments' => array('crs change currency'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('crs_exchangerate_form'),
+    ),
+    'test_form' => array(
+      'type' => MENU_CALLBACK,
+      'access callback' => TRUE,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('crs_test_form'),
+    )
   );
-
+  
   return $items;
 }
 
@@ -117,13 +125,21 @@ function crs_theme() {
     'crs_exchangerate_form' => array(
       'arguments' => array('form' => NULL),
     ),
+    'crs_option_defaults_values' => array(
+      'arguments' => array('form' => NULL),
+    ),
+
+    // поле цены с валютой
+    'crs_field_price' => array(
+       'arguments' => array('element' => NULL)
+    ),
   );
 }
 
 /**
  * process any products edit form
  */
-function _crs_any_product_form_alter(&$form, &$form_state) {
+function crs_any_product_form_alter(&$form, &$form_state) {
   $node = $form['#node'];
 
   $form['base']['prices']['list_price']['#default_value'] =
@@ -180,15 +196,97 @@ function _crs_any_product_form_alter(&$form, &$form_state) {
 
 }
 
+//function _crs_
+
+/**
+ * Параметры опции по умолчанию.
+ */
+function crs_option_defaults_values(&$form, &$form_state) {
+  if (empty($form['oid'])) {
+    // редактируем существующую опцию
+  }
+  else {
+    // определяем новую опцию для аттрибута
+  }
+  
+  $currencies = array_merge(array(variable_get('uc_currency_code', 'USD')), crs_currencies());
+  $currencies = array_combine($currencies, $currencies);
+
+  $form['adjustments']['#theme'] = 'crs_option_defaults_values';
+  $form['adjustments']['crs_cost'] = array(
+    '#type' => 'textfield',
+    '#size' => 16,
+    '#default_value' => isset($node->crs_list_price) ? uc_store_format_price_field_value($node->crs_list_price) : 0,
+    '#title' => t('Cost'),
+  );
+  $form['adjustments']['crs_cost_cur'] = array(
+    '#type' => 'select',
+    '#title' => t('Crs'),
+    '#options' => $currencies,
+    '#default_value' => empty($node->crs_list_price_cur) ?
+      variable_get('uc_currency_code', 'USD') : $node->crs_list_price_cur,
+  );
+
+  $form['adjustments']['crs_price'] = array(
+    '#type' => 'textfield',
+    '#size' => 16,
+    '#default_value' => isset($node->crs_list_price) ? uc_store_format_price_field_value($node->crs_list_price) : 0,
+    '#title' => t('Price'),
+  );
+  $form['adjustments']['crs_price_cur'] = array(
+    '#type' => 'select',
+    '#title' => t('Crs'),
+    '#options' => $currencies,
+    '#default_value' => empty($node->crs_list_price_cur) ?
+      variable_get('uc_currency_code', 'USD') : $node->crs_list_price_cur,
+  );
+}
+
+function theme_crs_option_defaults_values($form) {
+  $output = '<table class="crs">';
+  $output .= '<tr><td>'.drupal_render($form['crs_cost']).'</td><td>'.  drupal_render($form['crs_cost_cur']).'</td></tr>';
+  $output .= '<tr><td>'.drupal_render($form['crs_price']).'</td><td>'.drupal_render($form['crs_price_cur']).'</td></tr>';
+  $output .= '</table>';
+
+  $output .= '<div>';
+  $output .= drupal_render($form['cost']);
+  $output .= drupal_render($form['price']);
+  $output .= drupal_render($form['weight ']);
+  $output .= '</div>';
+  return $output . drupal_render($form);
+}
+
 /**
  * hook_form_alter()
  */
 function crs_form_alter(&$form, &$form_state, $form_id) {
+  drupal_set_message('crs_form_alter() => ' . $form_id);
+
   $types = uc_product_types();
   if (!empty($form['#node'])) {
     if (in_array($form['#node']->type, $types)) {
-      _crs_any_product_form_alter($form, $form_state);
+      crs_any_product_form_alter($form, $form_state);
     }
+  }
+
+  switch ($form_id) {
+    // uc_attribute_options_form список опций в аттрибуте
+    case 'uc_attribute_options_form':
+      break;
+
+    // uc_attribute_option_form настройки опции в аттрибуте
+    case 'uc_attribute_option_form':
+      crs_option_defaults_values($form, $form_state);
+      break;
+
+    // uc_object_attributes_form список атррибутов товара
+    case 'uc_object_attributes_form':
+      break;
+    
+    // uc_object_options_form - значения цен опций в товаре
+    case 'uc_object_options_form':
+      dsm(array($form, &$form_state), $form_id);
+      break;
   }
 }
 
@@ -309,4 +407,82 @@ function crs_exch($value, $src_currency, $dst_currency, $title = NULL) {
   }
 
   return floor($new_price * 100) / 100;
+}
+
+/*
+ * Price with currency FAPI element
+ */
+
+/**
+ * hook_elements()
+ */
+function crs_elements() {
+  return array(
+    'crs_field_price' => array(
+      '#input' => TRUE,
+      '#value_callback' =>   array('crs_field_price_value_callback'),
+      '#process' =>          array('crs_field_price_process'),
+      '#after_build' =>      array('crs_field_price_after_build'),
+      '#validate' =>         array('crs_field_price_validate'),
+      '#element_validate' => array('crs_field_price_element_validate'),
+      '#pre_render' =>       array('crs_field_price_pre_render'),
+      '#post_render' =>      array('crs_field_price_post_render'),
+      '#submit' =>           array('crs_field_price_submit'),
+
+      '#currencies' => array('USD', 'EUR'),
+      '#value' => 43.32,
+      '#currency' => 'EUR',
+    ),
+  );
+}
+function theme_crs_field_price($element) {
+  dsm($element);
+  $output = '<div style="border: 1px solid red">dgfdfg</div>';
+
+  return $output;
+}
+
+function crs_field_price_value_callback($element, $edit) {
+  dsm(array($element, $edit), 'crs_field_price_value_callback');
+}
+function crs_field_price_process($element, $edit, &$form_state, $complete_form) {
+  dsm(array($element, $edit, $form_state, $complete_form), 'crs_field_price_process');
+
+  return array(
+    'm1' => array(
+      '#value' => '<h2>Vddddds sdfsdf</h2>',
+    ),
+    'm2' => array(
+      '#type' => 'textfield',
+      '#title' => 'sss',
+    )
+  );
+}
+function crs_field_price_after_build($element, &$form_state) {
+  dsm(array($element, $form_state), 'crs_field_price_after_build');
+}
+function crs_field_price_validate($form, &$form_state) {
+  dsm(array($form, $form_state), 'crs_field_price_validate');
+}
+function crs_field_price_element_validate($element, &$form_state) {
+  dsm(array($form, $form_state), 'crs_field_price_element_validate');
+}
+function crs_field_price_pre_render($element) {
+  dsm(array($form, $form_state), 'crs_field_price_pre_render');
+}
+function crs_field_price_post_render($content, $element) {
+  dsm(array($form, $form_state), 'crs_field_price_post_render');
+}
+function crs_field_price_submit($form, &$form_state) {
+  dsm(array($form, $form_state), 'crs_field_price_submit');
+}
+
+function crs_test_form() {
+  $form['ddd'] = array('#value' => '<h1>sfsdfsdf</h1>');
+
+  $form['test_element'] = array(
+    '#type' => 'crs_field_price',
+  );
+
+  return $form;
 }
