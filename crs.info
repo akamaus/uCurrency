@@ -1,6 +1,7 @@
 ; $Id$
 
 version = 6.x-0.2.2
-name = Currency for Ubercart
+name = uCurrency
 core = 6.x
 dependencies[] = uc_product
+package = orangeudav
