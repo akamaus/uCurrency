@@ -3,7 +3,7 @@
 version = 6.x-0.3
 name = uCurrency
 core = 6.x
-package = Ubercart - extra
+package = orangeudav
 dependencies[] = uc_product
 dependencies[] = uc_attribute
 
