@@ -6,7 +6,7 @@
 function crs_views_handlers() {
   return array(
     'info' => array(
-      'path' => drupal_get_path('module', 'crs'),
+      'path' => drupal_get_path('module', 'crs') . '/views',
     ),
     'handlers' => array(
       'crs_handler_field_price' => array(
