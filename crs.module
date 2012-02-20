@@ -6,6 +6,13 @@
  * Adds support for currencies in Ubercart
  */
 
+function crs_views_api() {
+  return array(
+    'api' => '2.0',
+    'path' => drupal_get_path('module', 'crs'),
+  );
+}
+
 /**
  * hook_init()
  */
